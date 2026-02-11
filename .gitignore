@@ -12,3 +12,8 @@ __pycache__/
 
 # Ignore VS Code settings
 .vscode/
+
+
+# Ignore test database
+backend/test_db.py
+
