@@ -226,6 +226,7 @@ def login_provider():
         _log_auth_event(event_type="provider_login_failed", subject_type="provider")
         return _error_response("Invalid credentials", 401, "unauthorized")
 
+    # Login returns an access token; refresh flow is handled by /api/auth/refresh.
     access_token = create_access_token(
         identity=str(provider.id),
         additional_claims={"role": "provider"},
