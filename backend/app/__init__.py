@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import click
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, Response, g, jsonify, request, send_from_directory
+from flask import Flask, Response, g, request, send_from_directory
 from flask_cors import CORS
 from sqlalchemy import inspect
 
@@ -14,6 +14,7 @@ from .extensions import db, jwt, limiter, migrate
 from .models import RevokedToken
 from .tasks.admin_bootstrap import create_admin_account
 from .tasks.token_cleanup import cleanup_expired_revoked_tokens
+from .utils.responses import error_response
 
 _cleanup_scheduler = None
 
@@ -31,7 +32,8 @@ def _validate_jwt_secret(app):
         jwt_secret in weak_defaults or len(jwt_secret) < 32
     ):
         raise RuntimeError(
-            "JWT_SECRET_KEY must be at least 32 characters and not a default value in non-dev environments."
+            "JWT_SECRET_KEY must be at least 32 characters and "
+            "not a default value in non-dev environments."
         )
 
 
@@ -43,7 +45,8 @@ def _validate_rate_limit_storage(app):
     # Production multi-instance limits must use shared storage (e.g., Redis), not memory.
     if storage_uri.startswith("memory://"):
         raise RuntimeError(
-            "RATELIMIT_STORAGE_URI must use shared storage (for example redis://) in non-dev environments."
+            "RATELIMIT_STORAGE_URI must use shared storage "
+            "(for example redis://) in non-dev environments."
         )
 
 
@@ -55,7 +58,8 @@ def _validate_cors_configuration(app):
     # In non-dev mode, wildcard CORS is blocked to prevent overly broad cross-origin access.
     if not cors_origins or "*" in cors_origins:
         raise RuntimeError(
-            "CORS_ORIGINS must be explicitly set (no wildcard) in non-dev environments."
+            "CORS_ORIGINS must be explicitly set (no wildcard) "
+            "in non-dev environments."
         )
 
 
@@ -155,22 +159,6 @@ def create_app(config_overrides=None):
         )
     bootstrap_state = {"done": False}
 
-    def _json_error(message, status_code, code):
-        request_id = getattr(g, "request_id", "")
-        return (
-            jsonify(
-                {
-                    "msg": message,
-                    "error": {
-                        "code": code,
-                        "message": message,
-                        "request_id": request_id,
-                    },
-                }
-            ),
-            status_code,
-        )
-
     @app.before_request
     def assign_request_id():
         # Propagate incoming request id for traceability, or generate a new one.
@@ -190,19 +178,19 @@ def create_app(config_overrides=None):
 
     @jwt.unauthorized_loader
     def jwt_missing_token(reason):
-        return _json_error(reason, 401, "unauthorized")
+        return error_response(reason, 401, "unauthorized")
 
     @jwt.invalid_token_loader
     def jwt_invalid_token(reason):
-        return _json_error(reason, 401, "unauthorized")
+        return error_response(reason, 401, "unauthorized")
 
     @jwt.expired_token_loader
     def jwt_expired_token(_jwt_header, _jwt_payload):
-        return _json_error("Token has expired", 401, "unauthorized")
+        return error_response("Token has expired", 401, "unauthorized")
 
     @jwt.revoked_token_loader
     def jwt_revoked_token(_jwt_header, _jwt_payload):
-        return _json_error("Token has been revoked", 401, "unauthorized")
+        return error_response("Token has been revoked", 401, "unauthorized")
 
     @app.cli.command("cleanup-revoked-tokens")
     def cleanup_revoked_tokens_command():
@@ -270,11 +258,11 @@ def create_app(config_overrides=None):
 
     @app.errorhandler(401)
     def handle_unauthorized(_error):
-        return _json_error("Unauthorized", 401, "unauthorized")
+        return error_response("Unauthorized", 401, "unauthorized")
 
     @app.errorhandler(403)
     def handle_forbidden(_error):
-        return _json_error("Forbidden", 403, "forbidden")
+        return error_response("Forbidden", 403, "forbidden")
 
     @app.errorhandler(429)
     def handle_rate_limit(_error):
@@ -284,7 +272,7 @@ def create_app(config_overrides=None):
             request.path,
             datetime.now(UTC).isoformat(),
         )
-        return _json_error("Too Many Requests", 429, "rate_limited")
+        return error_response("Too Many Requests", 429, "rate_limited")
 
     @app.errorhandler(500)
     def handle_internal_error(error):
@@ -295,11 +283,20 @@ def create_app(config_overrides=None):
             datetime.now(UTC).isoformat(),
             str(error),
         )
-        return _json_error("Internal Server Error", 500, "internal_error")
+        return error_response("Internal Server Error", 500, "internal_error")
 
     @app.route("/health", methods=["GET"])
     def health_check():
         return {"status": "ok"}, 200
+
+    @app.route("/", methods=["GET"])
+    def index():
+        # Convenient landing page choice for an API: redirect to interactive docs.
+        return {
+            "message": "Welcome to HustleLink API",
+            "docs": "/docs",
+            "health": "/health",
+        }, 200
 
     docs_dir = Path(__file__).resolve().parents[1] / "docs"
 
@@ -310,18 +307,20 @@ def create_app(config_overrides=None):
 
     @app.route("/docs", methods=["GET"])
     def swagger_ui():
-        # Lightweight Swagger UI using CDN assets; no extra backend package required.
+        # Lightweight Swagger UI using CDN assets; no extra package required.
         html = """<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>HustleLink Auth API Docs</title>
-    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <link rel="stylesheet"
+          href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
   </head>
   <body>
     <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js">
+    </script>
     <script>
       window.ui = SwaggerUIBundle({
         url: "/openapi.yaml",

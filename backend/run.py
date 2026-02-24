@@ -1,6 +1,6 @@
-print("RUN FILE IS EXECUTING")
-
 from app import create_app
+
+print("RUN FILE IS EXECUTING")
 
 app = create_app()
 

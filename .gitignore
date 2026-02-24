@@ -24,3 +24,7 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Debug / local output files
+backend/debug_trace.txt
+backend/test_output.txt
