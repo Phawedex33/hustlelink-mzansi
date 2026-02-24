@@ -3,10 +3,6 @@ from app.extensions import db
 from .base import TimestampMixin
 import typing as t
 
-if t.TYPE_CHECKING:
-    from flask_sqlalchemy import SQLAlchemy
-    db: SQLAlchemy
-
 class RevokedToken(db.Model):
     __tablename__ = "revoked_tokens"
 
