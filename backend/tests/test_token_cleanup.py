@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from app.extensions import db
-from app.models.user import RevokedToken
+from app.models import RevokedToken
 from app.tasks.token_cleanup import cleanup_expired_revoked_tokens
 
 

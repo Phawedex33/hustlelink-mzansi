@@ -1,5 +1,5 @@
 from app.extensions import db
-from app.models.user import Admin
+from app.models import Admin
 
 
 def create_admin_account(email, password, full_name):

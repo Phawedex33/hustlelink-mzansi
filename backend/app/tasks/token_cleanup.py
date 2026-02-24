@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from app.extensions import db
-from app.models.user import RevokedToken
+from app.models import RevokedToken
 
 
 def cleanup_expired_revoked_tokens():

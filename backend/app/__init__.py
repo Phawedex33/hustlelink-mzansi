@@ -1,7 +1,7 @@
 from flask import Flask, Response, g, jsonify, request, send_from_directory
 from .config import Config
 from .extensions import db, jwt, migrate, limiter
-from .models.user import RevokedToken
+from .models import RevokedToken
 from .tasks.token_cleanup import cleanup_expired_revoked_tokens
 from .tasks.admin_bootstrap import create_admin_account
 from apscheduler.schedulers.background import BackgroundScheduler

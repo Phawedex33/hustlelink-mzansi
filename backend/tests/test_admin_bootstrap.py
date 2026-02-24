@@ -3,7 +3,7 @@ import tempfile
 
 from app import create_app
 from app.extensions import db
-from app.models.user import Admin
+from app.models import Admin
 
 
 def test_create_admin_cli_creates_account(app):

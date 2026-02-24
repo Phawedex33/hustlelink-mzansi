@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app, g
-from app.models.user import Provider, Admin, RevokedToken, AuthEvent
+from app.models import Provider, Admin, RevokedToken, AuthEvent
 from app.extensions import db, limiter
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from functools import wraps

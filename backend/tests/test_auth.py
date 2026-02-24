@@ -1,5 +1,5 @@
 from app.extensions import db
-from app.models.user import Admin, AuthEvent
+from app.models import Admin, AuthEvent
 from app import create_app
 import os
 import tempfile
