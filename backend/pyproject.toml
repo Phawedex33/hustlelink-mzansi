@@ -13,5 +13,5 @@ warn_redundant_casts = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = ["app.models.user"]
+module = ["app.models.security", "app.models.identity"]
 disable_error_code = ["name-defined"]
