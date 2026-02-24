@@ -1,10 +1,17 @@
-from flask import Blueprint, request, jsonify, current_app, g
-from app.models import Provider, Admin, RevokedToken, AuthEvent
-from app.extensions import db, limiter
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
-from functools import wraps
 import re
 from datetime import UTC, datetime
+from functools import wraps
+
+from app.extensions import db, limiter
+from app.models import AuthEvent, Profile, ProviderProfile, RevokedToken, User
+from flask import Blueprint, current_app, g, jsonify, request
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt,
+    get_jwt_identity,
+    jwt_required,
+)
 
 auth_bp = Blueprint("auth", __name__)
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -15,7 +22,9 @@ SUPPORTED_AUTH_ROLES = ["provider", "admin"]
 def _get_json_data():
     data = request.get_json(silent=True)
     if not data:
-        return None, _error_response("Request body must be valid JSON", 400, "bad_request")
+        return None, _error_response(
+            "Request body must be valid JSON", 400, "bad_request"
+        )
     return data, None
 
 
@@ -64,7 +73,9 @@ def _validate_password_strength(password):
             400,
             "bad_request",
         )
-    if not any(char.isalpha() for char in password) or not any(char.isdigit() for char in password):
+    if not any(char.isalpha() for char in password) or not any(
+        char.isdigit() for char in password
+    ):
         return _error_response(
             "Password must include at least one letter and one number",
             400,
@@ -93,7 +104,11 @@ def _log_auth_event(event_type, subject_type, subject_id=None):
                 subject_type=subject_type,
                 subject_id=str(subject_id) if subject_id is not None else None,
                 ip=request.remote_addr,
-                user_agent=request.user_agent.string[:255] if request.user_agent and request.user_agent.string else None,
+                user_agent=(
+                    request.user_agent.string[:255]
+                    if request.user_agent and request.user_agent.string
+                    else None
+                ),
             )
         )
         db.session.commit()
@@ -165,17 +180,22 @@ def role_required(required_role):
             if forbidden:
                 return forbidden
             return fn(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
+
 # Provider registration
-@auth_bp.route('/register', methods=['POST'])
+@auth_bp.route("/register", methods=["POST"])
 def register_provider():
     data, error_response = _get_json_data()
     if error_response:
         return error_response
 
-    validation_error = _validate_required_fields(data, ["full_name", "email", "password"])
+    validation_error = _validate_required_fields(
+        data, ["full_name", "email", "password"]
+    )
     if validation_error:
         return validation_error
 
@@ -189,21 +209,38 @@ def register_provider():
     if weak_password:
         return weak_password
 
-    if Provider.query.filter_by(email=email).first():
+    if User.query.filter_by(email=email).first():
         return _error_response("Email already exists", 409, "conflict")
 
-    provider = Provider(
-        full_name=full_name,
-        email=email
-    )
-    provider.set_password(password)
-    db.session.add(provider)
+    # For now, require phone_number or use a placeholder if not provided
+    phone_number = data.get("phone_number")
+    if not phone_number:
+        return _error_response("Phone number is required", 400, "bad_request")
+
+    if User.query.filter_by(phone_number=phone_number).first():
+        return _error_response("Phone number already exists", 409, "conflict")
+
+    user = User(phone_number=phone_number, email=email)
+    user.set_password(password)
+
+    # Parse full name into first and last
+    name_parts = full_name.split(" ", 1)
+    first_name = name_parts[0]
+    last_name = name_parts[1] if len(name_parts) > 1 else ""
+
+    profile = Profile(user=user, first_name=first_name, last_name=last_name)
+    provider_profile = ProviderProfile(user=user)
+
+    db.session.add(user)
+    db.session.add(profile)
+    db.session.add(provider_profile)
     db.session.commit()
 
     return jsonify({"msg": "Provider registered successfully"}), 201
 
+
 # Provider login
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route("/login", methods=["POST"])
 @limiter.limit(lambda: current_app.config.get("AUTH_LOGIN_RATE_LIMIT", "10 per minute"))
 def login_provider():
     data, error_response = _get_json_data()
@@ -220,19 +257,23 @@ def login_provider():
     if invalid_email:
         return invalid_email
 
-    provider = Provider.query.filter_by(email=email).first()
-    if not provider or not provider.check_password(password):
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.check_password(password) or not user.provider_profile:
         _log_auth_metric(event="provider_login_failed", role="provider")
         _log_auth_event(event_type="provider_login_failed", subject_type="provider")
         return _error_response("Invalid credentials", 401, "unauthorized")
 
-    tokens = _issue_auth_tokens(identity=str(provider.id), role="provider")
+    tokens = _issue_auth_tokens(identity=str(user.id), role="provider")
     _log_auth_metric(event="provider_login_succeeded", role="provider")
-    _log_auth_event(event_type="provider_login_succeeded", subject_type="provider", subject_id=provider.id)
+    _log_auth_event(
+        event_type="provider_login_succeeded",
+        subject_type="provider",
+        subject_id=user.id,
+    )
     return jsonify(tokens), 200
 
 
-@auth_bp.route('/admin/login', methods=['POST'])
+@auth_bp.route("/admin/login", methods=["POST"])
 @limiter.limit(lambda: current_app.config.get("AUTH_LOGIN_RATE_LIMIT", "10 per minute"))
 def login_admin():
     data, error_response = _get_json_data()
@@ -249,18 +290,21 @@ def login_admin():
     if invalid_email:
         return invalid_email
 
-    admin = Admin.query.filter_by(email=email).first()
-    if not admin or not admin.check_password(password):
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.check_password(password) or not user.is_admin:
         _log_auth_metric(event="admin_login_failed", role="admin")
         _log_auth_event(event_type="admin_login_failed", subject_type="admin")
         return _error_response("Invalid credentials", 401, "unauthorized")
 
-    tokens = _issue_auth_tokens(identity=str(admin.id), role="admin")
+    tokens = _issue_auth_tokens(identity=str(user.id), role="admin")
     _log_auth_metric(event="admin_login_succeeded", role="admin")
-    _log_auth_event(event_type="admin_login_succeeded", subject_type="admin", subject_id=admin.id)
+    _log_auth_event(
+        event_type="admin_login_succeeded", subject_type="admin", subject_id=user.id
+    )
     return jsonify(tokens), 200
 
-#temporary
+
+# temporary
 @auth_bp.route("/test", methods=["GET"])
 def test_route():
     return {"message": "Auth route working!"}, 200
@@ -269,15 +313,22 @@ def test_route():
 @auth_bp.route("/version", methods=["GET"])
 def auth_version():
     # Runtime contract endpoint for frontend capability checks.
-    refresh_rotation_enabled = current_app.config.get("AUTH_REFRESH_ROTATION_ENABLED", True)
-    return jsonify(
-        {
-            "api_version": AUTH_API_VERSION,
-            "refresh_rotation_enabled": bool(refresh_rotation_enabled),
-            "rate_limit_policy": current_app.config.get("AUTH_LOGIN_RATE_LIMIT", "10 per minute"),
-            "supported_roles": SUPPORTED_AUTH_ROLES,
-        }
-    ), 200
+    refresh_rotation_enabled = current_app.config.get(
+        "AUTH_REFRESH_ROTATION_ENABLED", True
+    )
+    return (
+        jsonify(
+            {
+                "api_version": AUTH_API_VERSION,
+                "refresh_rotation_enabled": bool(refresh_rotation_enabled),
+                "rate_limit_policy": current_app.config.get(
+                    "AUTH_LOGIN_RATE_LIMIT", "10 per minute"
+                ),
+                "supported_roles": SUPPORTED_AUTH_ROLES,
+            }
+        ),
+        200,
+    )
 
 
 # Simple protected endpoint to verify JWT flow end-to-end.
@@ -313,11 +364,15 @@ def refresh_access_token():
     else:
         # Compatibility mode: keep refresh token stable and issue only a new access token.
         tokens = {
-            "access_token": create_access_token(identity=identity, additional_claims={"role": role}),
+            "access_token": create_access_token(
+                identity=identity, additional_claims={"role": role}
+            ),
             "refresh_token": None,
         }
     _log_auth_metric(event="token_refreshed", role=role)
-    _log_auth_event(event_type="token_refreshed", subject_type=role, subject_id=identity)
+    _log_auth_event(
+        event_type="token_refreshed", subject_type=role, subject_id=identity
+    )
     return jsonify(tokens), 200
 
 
@@ -327,5 +382,9 @@ def logout():
     jwt_payload = get_jwt()
     _revoke_token(jwt_payload)
     _log_auth_metric(event="logout_succeeded", role=jwt_payload.get("role", "unknown"))
-    _log_auth_event(event_type="logout_succeeded", subject_type=jwt_payload.get("role", "unknown"), subject_id=get_jwt_identity())
+    _log_auth_event(
+        event_type="logout_succeeded",
+        subject_type=jwt_payload.get("role", "unknown"),
+        subject_id=get_jwt_identity(),
+    )
     return jsonify({"msg": "Logged out successfully"}), 200

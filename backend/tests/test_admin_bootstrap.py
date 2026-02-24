@@ -3,7 +3,7 @@ import tempfile
 
 from app import create_app
 from app.extensions import db
-from app.models import Admin
+from app.models import User
 
 
 def test_create_admin_cli_creates_account(app):
@@ -23,9 +23,13 @@ def test_create_admin_cli_creates_account(app):
     assert result.exit_code == 0
     assert "Admin created: admin_bootstrap@example.com" in result.output
     with app.app_context():
-        created_admin = Admin.query.filter_by(email="admin_bootstrap@example.com").first()
+        created_admin = User.query.filter_by(
+            email="admin_bootstrap@example.com"
+        ).first()
         assert created_admin is not None
-        assert created_admin.full_name == "Bootstrap Admin"
+        assert created_admin.is_admin is True
+        assert created_admin.profile.first_name == "Bootstrap"
+        assert created_admin.profile.last_name == "Admin"
 
 
 def test_create_admin_cli_rejects_duplicate_email(app):
@@ -80,16 +84,18 @@ def test_env_bootstrap_creates_admin_without_cli_shell():
     with app.app_context():
         db.drop_all()
         db.create_all()
-        assert Admin.query.filter_by(email="env_admin@example.com").first() is None
+        assert User.query.filter_by(email="env_admin@example.com").first() is None
 
     # First request triggers bootstrap hook when admin env vars are set.
     response = client.get("/health")
     assert response.status_code == 200
 
     with app.app_context():
-        created_admin = Admin.query.filter_by(email="env_admin@example.com").first()
+        created_admin = User.query.filter_by(email="env_admin@example.com").first()
         assert created_admin is not None
-        assert created_admin.full_name == "Env Admin"
+        assert created_admin.is_admin is True
+        assert created_admin.profile.first_name == "Env"
+        assert created_admin.profile.last_name == "Admin"
         db.session.remove()
         db.drop_all()
         db.engine.dispose()

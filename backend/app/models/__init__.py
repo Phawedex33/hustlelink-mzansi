@@ -1,4 +1,13 @@
-from .identity import Provider, Admin
-from .security import RevokedToken, AuthEvent
+from .identity import Profile, ProviderProfile, User
+from .marketplace import Booking, Service
+from .security import AuthEvent, RevokedToken
 
-__all__ = ["Provider", "Admin", "RevokedToken", "AuthEvent"]
+__all__ = [
+    "User",
+    "Profile",
+    "ProviderProfile",
+    "RevokedToken",
+    "AuthEvent",
+    "Service",
+    "Booking",
+]

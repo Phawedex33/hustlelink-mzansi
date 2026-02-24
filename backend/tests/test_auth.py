@@ -1,13 +1,16 @@
-from app.extensions import db
-from app.models import Admin, AuthEvent
-from app import create_app
 import os
 import tempfile
+
+from app import create_app
+from app.extensions import db
+from app.models import AuthEvent, User
 
 
 def _create_admin(app, email, password):
     with app.app_context():
-        admin = Admin(full_name="Test Admin", email=email)
+        admin = User(
+            phone_number=f"admin-{email}", email=email, is_admin=True, is_verified=True
+        )
         admin.set_password(password)
         db.session.add(admin)
         db.session.commit()
@@ -21,7 +24,12 @@ def _count_auth_events(app, event_type):
 def test_register_success(client):
     response = client.post(
         "/api/auth/register",
-        json={"email": "user1@example.com", "password": "Pass1234!", "full_name": "Test User"},
+        json={
+            "email": "user1@example.com",
+            "password": "Pass1234!",
+            "full_name": "Test User",
+            "phone_number": "0123456789",
+        },
     )
 
     assert response.status_code == 201
@@ -29,7 +37,12 @@ def test_register_success(client):
 
 
 def test_register_duplicate_email(client):
-    payload = {"email": "dupe@example.com", "password": "Pass1234!", "full_name": "Test User"}
+    payload = {
+        "email": "dupe@example.com",
+        "password": "Pass1234!",
+        "full_name": "Test User",
+        "phone_number": "0987654321",
+    }
     first = client.post("/api/auth/register", json=payload)
     second = client.post("/api/auth/register", json=payload)
 
@@ -41,7 +54,12 @@ def test_register_duplicate_email(client):
 def test_register_invalid_email_returns_400(client):
     response = client.post(
         "/api/auth/register",
-        json={"email": "not-an-email", "password": "Pass1234!", "full_name": "Test User"},
+        json={
+            "email": "not-an-email",
+            "password": "Pass1234!",
+            "full_name": "Test User",
+            "phone_number": "0000000000",
+        },
     )
 
     assert response.status_code == 400
@@ -51,7 +69,12 @@ def test_register_invalid_email_returns_400(client):
 def test_register_weak_password_returns_400(client):
     response = client.post(
         "/api/auth/register",
-        json={"email": "weakpass@example.com", "password": "short", "full_name": "Test User"},
+        json={
+            "email": "weakpass@example.com",
+            "password": "short",
+            "full_name": "Test User",
+            "phone_number": "1111111111",
+        },
     )
 
     assert response.status_code == 400
@@ -59,7 +82,12 @@ def test_register_weak_password_returns_400(client):
 
 
 def test_login_success_returns_token(client):
-    register_payload = {"email": "loginok@example.com", "password": "Pass1234!", "full_name": "Test User"}
+    register_payload = {
+        "email": "loginok@example.com",
+        "password": "Pass1234!",
+        "full_name": "Test User",
+        "phone_number": "2222222222",
+    }
     client.post("/api/auth/register", json=register_payload)
 
     response = client.post("/api/auth/login", json=register_payload)
@@ -78,7 +106,12 @@ def test_login_success_returns_token(client):
 def test_login_invalid_password_returns_401(client):
     client.post(
         "/api/auth/register",
-        json={"email": "badpw@example.com", "password": "Pass1234!", "full_name": "Test User"},
+        json={
+            "email": "badpw@example.com",
+            "password": "Pass1234!",
+            "full_name": "Test User",
+            "phone_number": "3333333333",
+        },
     )
 
     response = client.post(
@@ -119,7 +152,15 @@ def test_me_without_token_returns_401(client):
 
 def test_me_with_token_returns_200(client):
     creds = {"email": "tokenuser@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": creds["email"],
+            "password": creds["password"],
+            "full_name": "Test User",
+            "phone_number": "4444444444",
+        },
+    )
     login_response = client.post("/api/auth/login", json=creds)
     token = login_response.get_json()["access_token"]
 
@@ -135,7 +176,15 @@ def test_me_with_token_returns_200(client):
 
 def test_admin_ping_with_provider_token_returns_403(client):
     creds = {"email": "provideronly@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": creds["email"],
+            "password": creds["password"],
+            "full_name": "Test User",
+            "phone_number": "5555555555",
+        },
+    )
     login_response = client.post("/api/auth/login", json=creds)
     token = login_response.get_json()["access_token"]
 
@@ -186,7 +235,15 @@ def test_admin_ping_with_admin_token_returns_200(client):
 
 def test_provider_ping_with_provider_token_returns_200(client):
     creds = {"email": "provider_ping@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": creds["email"],
+            "password": creds["password"],
+            "full_name": "Test User",
+            "phone_number": "6666666666",
+        },
+    )
     login_response = client.post("/api/auth/login", json=creds)
     token = login_response.get_json()["access_token"]
 
@@ -254,7 +311,15 @@ def test_login_rate_limit_returns_429(client):
 
 def test_refresh_returns_new_access_token(client):
     creds = {"email": "refresh_user@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": creds["email"],
+            "password": creds["password"],
+            "full_name": "Test User",
+            "phone_number": "7777777777",
+        },
+    )
     login_response = client.post("/api/auth/login", json=creds)
     refresh_token = login_response.get_json()["refresh_token"]
 
@@ -276,7 +341,15 @@ def test_refresh_returns_new_access_token(client):
 
 def test_refresh_rotation_revokes_old_refresh_token(client):
     creds = {"email": "refresh_rotate@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": creds["email"],
+            "password": creds["password"],
+            "full_name": "Test User",
+            "phone_number": "8888888888",
+        },
+    )
     login_response = client.post("/api/auth/login", json=creds)
     old_refresh = login_response.get_json()["refresh_token"]
 
@@ -299,7 +372,15 @@ def test_refresh_rotation_revokes_old_refresh_token(client):
 
 def test_logout_revokes_access_token(client):
     creds = {"email": "logout_user@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
+    client.post(
+        "/api/auth/register",
+        json={
+            "email": creds["email"],
+            "password": creds["password"],
+            "full_name": "Test User",
+            "phone_number": "9999999999",
+        },
+    )
     login_response = client.post("/api/auth/login", json=creds)
     access_token = login_response.get_json()["access_token"]
 

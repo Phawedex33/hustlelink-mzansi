@@ -13,5 +13,9 @@ warn_redundant_casts = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = ["app.models.security", "app.models.identity"]
+module = [
+  "app.models.security",
+  "app.models.identity",
+  "app.models.marketplace",
+]
 disable_error_code = ["name-defined"]

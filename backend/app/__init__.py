@@ -1,19 +1,22 @@
-from flask import Flask, Response, g, jsonify, request, send_from_directory
-from .config import Config
-from .extensions import db, jwt, migrate, limiter
-from .models import RevokedToken
-from .tasks.token_cleanup import cleanup_expired_revoked_tokens
-from .tasks.admin_bootstrap import create_admin_account
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask_cors import CORS
-import click
 import os
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
+
+import click
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, Response, g, jsonify, request, send_from_directory
+from flask_cors import CORS
 from sqlalchemy import inspect
 
+from .config import Config
+from .extensions import db, jwt, limiter, migrate
+from .models import RevokedToken
+from .tasks.admin_bootstrap import create_admin_account
+from .tasks.token_cleanup import cleanup_expired_revoked_tokens
+
 _cleanup_scheduler = None
+
 
 def _is_dev_environment(env_name):
     return str(env_name).lower() in {"development", "dev", "local", "test", "testing"}
@@ -24,7 +27,9 @@ def _validate_jwt_secret(app):
     weak_defaults = {"", "dev-jwt-secret", "super-jwt-secret", "changeme"}
     env_name = app.config.get("ENV", "development")
     jwt_secret = app.config.get("JWT_SECRET_KEY", "") or ""
-    if not _is_dev_environment(env_name) and (jwt_secret in weak_defaults or len(jwt_secret) < 32):
+    if not _is_dev_environment(env_name) and (
+        jwt_secret in weak_defaults or len(jwt_secret) < 32
+    ):
         raise RuntimeError(
             "JWT_SECRET_KEY must be at least 32 characters and not a default value in non-dev environments."
         )
@@ -60,7 +65,9 @@ def _validate_cookie_security(app):
         return
     # Prevent non-HTTPS cookie transport in production-like environments.
     if not app.config.get("SESSION_COOKIE_SECURE", False):
-        raise RuntimeError("SESSION_COOKIE_SECURE must be true in non-dev environments.")
+        raise RuntimeError(
+            "SESSION_COOKIE_SECURE must be true in non-dev environments."
+        )
 
 
 def _start_token_cleanup_scheduler(app):
@@ -102,7 +109,9 @@ def _bootstrap_admin_from_env(app, bootstrap_state):
 
     email = str(app.config.get("BOOTSTRAP_ADMIN_EMAIL", "")).strip().lower()
     password = str(app.config.get("BOOTSTRAP_ADMIN_PASSWORD", ""))
-    full_name = str(app.config.get("BOOTSTRAP_ADMIN_FULL_NAME", "Platform Admin")).strip()
+    full_name = str(
+        app.config.get("BOOTSTRAP_ADMIN_FULL_NAME", "Platform Admin")
+    ).strip()
 
     if not email or not password:
         bootstrap_state["done"] = True
@@ -110,8 +119,8 @@ def _bootstrap_admin_from_env(app, bootstrap_state):
 
     # Avoid failing startup before migrations; retry on later requests until table exists.
     table_names = set(inspect(db.engine).get_table_names())
-    if "admins" not in table_names:
-        app.logger.warning("admin_bootstrap_skipped reason=missing_admins_table")
+    if "users" not in table_names:
+        app.logger.warning("admin_bootstrap_skipped reason=missing_users_table")
         return
 
     admin = create_admin_account(email=email, password=password, full_name=full_name)
@@ -139,7 +148,9 @@ def create_app(config_overrides=None):
     if app.config.get("CORS_ENABLED", True):
         CORS(
             app,
-            resources={r"/api/*": {"origins": app.config.get("CORS_ORIGINS", []) or "*"}},
+            resources={
+                r"/api/*": {"origins": app.config.get("CORS_ORIGINS", []) or "*"}
+            },
             supports_credentials=app.config.get("CORS_SUPPORTS_CREDENTIALS", False),
         )
     bootstrap_state = {"done": False}
@@ -206,18 +217,35 @@ def create_app(config_overrides=None):
 
     @app.cli.command("create-admin")
     @click.option("--email", prompt=True, help="Admin email address.")
-    @click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True, help="Admin password.")
-    @click.option("--full-name", default="Platform Admin", show_default=True, help="Admin display name.")
+    @click.option(
+        "--password",
+        prompt=True,
+        hide_input=True,
+        confirmation_prompt=True,
+        help="Admin password.",
+    )
+    @click.option(
+        "--full-name",
+        default="Platform Admin",
+        show_default=True,
+        help="Admin display name.",
+    )
     def create_admin_command(email, password, full_name):
         # Controlled bootstrap path for admin creation without exposing a public API endpoint.
         if "@" not in email or "." not in email:
             raise click.ClickException("Invalid email format.")
         if len(password) < 8:
             raise click.ClickException("Password must be at least 8 characters long.")
-        if not any(char.isalpha() for char in password) or not any(char.isdigit() for char in password):
-            raise click.ClickException("Password must include at least one letter and one number.")
+        if not any(char.isalpha() for char in password) or not any(
+            char.isdigit() for char in password
+        ):
+            raise click.ClickException(
+                "Password must include at least one letter and one number."
+            )
 
-        admin = create_admin_account(email=email, password=password, full_name=full_name)
+        admin = create_admin_account(
+            email=email, password=password, full_name=full_name
+        )
         if admin is None:
             raise click.ClickException("Admin email already exists.")
 
@@ -235,7 +263,9 @@ def create_app(config_overrides=None):
             response.headers.setdefault("X-Content-Type-Options", "nosniff")
             response.headers.setdefault("X-Frame-Options", "DENY")
             response.headers.setdefault("Referrer-Policy", "no-referrer")
-            response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none';")
+            response.headers.setdefault(
+                "Content-Security-Policy", "default-src 'none'; frame-ancestors 'none';"
+            )
         return response
 
     @app.errorhandler(401)
@@ -304,7 +334,9 @@ def create_app(config_overrides=None):
         return Response(html, mimetype="text/html")
 
     from app.routes.auth import auth_bp
-    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    from app.routes.marketplace import marketplace_bp
 
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(marketplace_bp, url_prefix="/api/marketplace")
 
     return app
