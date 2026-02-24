@@ -1,19 +1,26 @@
-# Ignore virtual environments
-venv/
-backend/venv/
-
-# Ignore environment variables
-.env
-backend/.env
-
-# Ignore Python cache
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
 
-# Ignore VS Code settings
-.vscode/
+# Environment
+.env
+.venv/
+venv/
 
+# Flask
+instance/
 
-# Ignore test database
-backend/test_db.py
+# Testing
+.pytest_cache/
+.coverage
 
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

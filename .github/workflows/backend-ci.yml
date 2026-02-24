@@ -1,0 +1,99 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+jobs:
+  test-and-migrations:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          FLASK_ENV: testing
+          APP_ENV: testing
+          SECRET_KEY: ci-secret-key
+          JWT_SECRET_KEY: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          DATABASE_URL: sqlite:///ci.db
+          RATELIMIT_ENABLED: "false"
+          TOKEN_CLEANUP_ENABLED: "false"
+        run: python -m pytest -q
+
+      - name: Alembic heads
+        env:
+          FLASK_ENV: development
+          APP_ENV: development
+          SECRET_KEY: ci-secret-key
+          JWT_SECRET_KEY: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          DATABASE_URL: sqlite:///ci.db
+          RATELIMIT_ENABLED: "false"
+          TOKEN_CLEANUP_ENABLED: "false"
+        run: |
+          # Release safety: fail if migration graph has multiple heads.
+          HEAD_OUTPUT="$(flask --app run.py db heads)"
+          echo "$HEAD_OUTPUT"
+          HEAD_COUNT="$(echo "$HEAD_OUTPUT" | grep -c '(head)')"
+          test "$HEAD_COUNT" -eq 1
+
+      - name: Alembic upgrade and current revision
+        env:
+          FLASK_ENV: development
+          APP_ENV: development
+          SECRET_KEY: ci-secret-key
+          JWT_SECRET_KEY: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          DATABASE_URL: sqlite:///ci.db
+          RATELIMIT_ENABLED: "false"
+          TOKEN_CLEANUP_ENABLED: "false"
+        run: |
+          flask --app run.py db upgrade
+          flask --app run.py db current
+
+  lint-and-types:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies and tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff mypy
+
+      - name: Ruff
+        run: ruff check app tests
+
+      - name: Mypy
+        run: mypy app

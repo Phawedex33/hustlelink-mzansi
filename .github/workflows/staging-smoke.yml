@@ -1,0 +1,34 @@
+name: Staging Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Staging base URL (e.g. https://staging.example.com)"
+        required: true
+        type: string
+
+jobs:
+  smoke-auth:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run auth smoke flow
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          PROVIDER_EMAIL: ${{ secrets.STAGING_PROVIDER_EMAIL }}
+          PROVIDER_PASSWORD: ${{ secrets.STAGING_PROVIDER_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.STAGING_ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.STAGING_ADMIN_PASSWORD }}
+        run: python scripts/auth_smoke.py

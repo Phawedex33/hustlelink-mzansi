@@ -1,0 +1,268 @@
+openapi: 3.1.0
+info:
+  title: HustleLink Mzansi Auth API
+  version: 1.0.0
+  description: |
+    Authentication and authorization endpoints for HustleLink Mzansi.
+    This contract reflects JWT access/refresh flow with refresh-token rotation.
+servers:
+  - url: http://localhost:5000
+    description: Local development
+tags:
+  - name: Auth
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Provider registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Duplicate email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login provider
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Provider login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPairResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          description: Login rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /api/auth/admin/login:
+    post:
+      tags: [Auth]
+      summary: Login admin
+      description: Admin account must already exist (bootstrap via CLI command).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Admin login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPairResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          description: Login rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rotate refresh token and return new token pair
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Refresh succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPairResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke current token
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logout succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current identity
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Identity info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/auth/admin/ping:
+    get:
+      tags: [Auth]
+      summary: Admin-only probe
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin access granted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/auth/provider/ping:
+    get:
+      tags: [Auth]
+      summary: Provider-only probe
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Provider access granted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/auth/test:
+    get:
+      tags: [Auth]
+      summary: Basic auth blueprint probe
+      responses:
+        "200":
+          description: Route is reachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Auth route working!
+                required: [message]
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Invalid request payload
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    Unauthorized:
+      description: Missing, invalid, or revoked token; or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    Forbidden:
+      description: Authenticated but not authorized for requested role
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: provider@example.com
+        password:
+          type: string
+          minLength: 8
+          example: Pass1234!
+      required: [email, password]
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+    TokenPairResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      required: [access_token, refresh_token]
+    MeResponse:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          example: "1"
+        role:
+          type: string
+          enum: [provider, admin]
+      required: [provider_id, role]
+    MessageResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+      required: [msg]
