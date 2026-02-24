@@ -1,6 +1,5 @@
 from datetime import UTC, datetime
 from app.extensions import db
-import typing as t
 
 class TimestampMixin:
     """Mixin to add created_at timestamp to models."""

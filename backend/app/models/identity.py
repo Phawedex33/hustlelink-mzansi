@@ -1,7 +1,6 @@
 from app.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from .base import TimestampMixin
-import typing as t
 
 class UserMixin:
     """Shared mixin for user-like entities with passwords."""
