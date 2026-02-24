@@ -1,6 +1,13 @@
 from app.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from .base import TimestampMixin
+import typing as t
+
+if t.TYPE_CHECKING:
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_sqlalchemy.model import Model
+    db: SQLAlchemy
+    Model: t.Any # Fallback for inheritance
 
 class UserMixin:
     """Shared mixin for user-like entities with passwords."""
