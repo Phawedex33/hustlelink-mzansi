@@ -27,10 +27,16 @@ jobs:
         pip install -r requirements.txt
 
     - name: Initial Database Setup
+      env:
+        JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
       run: |
-        # Use simple sqlite for CI testing
-        flask --app run.py db upgrade
+        mkdir -p instance
+        export PYTHONPATH=$PYTHONPATH:.
+        python -m flask --app run.py db upgrade
 
     - name: Run tests with pytest
+      env:
+        JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
       run: |
+        export PYTHONPATH=$PYTHONPATH:.
         python -m pytest
