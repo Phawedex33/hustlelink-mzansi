@@ -226,14 +226,10 @@ def login_provider():
         _log_auth_event(event_type="provider_login_failed", subject_type="provider")
         return _error_response("Invalid credentials", 401, "unauthorized")
 
-    # Login returns an access token; refresh flow is handled by /api/auth/refresh.
-    access_token = create_access_token(
-        identity=str(provider.id),
-        additional_claims={"role": "provider"},
-    )
+    tokens = _issue_auth_tokens(identity=str(provider.id), role="provider")
     _log_auth_metric(event="provider_login_succeeded", role="provider")
     _log_auth_event(event_type="provider_login_succeeded", subject_type="provider", subject_id=provider.id)
-    return jsonify({"access_token": access_token}), 200
+    return jsonify(tokens), 200
 
 
 @auth_bp.route('/admin/login', methods=['POST'])

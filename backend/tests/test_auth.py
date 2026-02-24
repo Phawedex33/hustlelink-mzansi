@@ -21,7 +21,7 @@ def _count_auth_events(app, event_type):
 def test_register_success(client):
     response = client.post(
         "/api/auth/register",
-        json={"email": "user1@example.com", "password": "Pass1234!"},
+        json={"email": "user1@example.com", "password": "Pass1234!", "full_name": "Test User"},
     )
 
     assert response.status_code == 201
@@ -29,7 +29,7 @@ def test_register_success(client):
 
 
 def test_register_duplicate_email(client):
-    payload = {"email": "dupe@example.com", "password": "Pass1234!"}
+    payload = {"email": "dupe@example.com", "password": "Pass1234!", "full_name": "Test User"}
     first = client.post("/api/auth/register", json=payload)
     second = client.post("/api/auth/register", json=payload)
 
@@ -41,7 +41,7 @@ def test_register_duplicate_email(client):
 def test_register_invalid_email_returns_400(client):
     response = client.post(
         "/api/auth/register",
-        json={"email": "not-an-email", "password": "Pass1234!"},
+        json={"email": "not-an-email", "password": "Pass1234!", "full_name": "Test User"},
     )
 
     assert response.status_code == 400
@@ -51,7 +51,7 @@ def test_register_invalid_email_returns_400(client):
 def test_register_weak_password_returns_400(client):
     response = client.post(
         "/api/auth/register",
-        json={"email": "weakpass@example.com", "password": "short"},
+        json={"email": "weakpass@example.com", "password": "short", "full_name": "Test User"},
     )
 
     assert response.status_code == 400
@@ -59,7 +59,7 @@ def test_register_weak_password_returns_400(client):
 
 
 def test_login_success_returns_token(client):
-    register_payload = {"email": "loginok@example.com", "password": "Pass1234!"}
+    register_payload = {"email": "loginok@example.com", "password": "Pass1234!", "full_name": "Test User"}
     client.post("/api/auth/register", json=register_payload)
 
     response = client.post("/api/auth/login", json=register_payload)
@@ -78,7 +78,7 @@ def test_login_success_returns_token(client):
 def test_login_invalid_password_returns_401(client):
     client.post(
         "/api/auth/register",
-        json={"email": "badpw@example.com", "password": "Pass1234!"},
+        json={"email": "badpw@example.com", "password": "Pass1234!", "full_name": "Test User"},
     )
 
     response = client.post(
@@ -119,7 +119,7 @@ def test_me_without_token_returns_401(client):
 
 def test_me_with_token_returns_200(client):
     creds = {"email": "tokenuser@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json=creds)
+    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
     login_response = client.post("/api/auth/login", json=creds)
     token = login_response.get_json()["access_token"]
 
@@ -135,7 +135,7 @@ def test_me_with_token_returns_200(client):
 
 def test_admin_ping_with_provider_token_returns_403(client):
     creds = {"email": "provideronly@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json=creds)
+    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
     login_response = client.post("/api/auth/login", json=creds)
     token = login_response.get_json()["access_token"]
 
@@ -186,7 +186,7 @@ def test_admin_ping_with_admin_token_returns_200(client):
 
 def test_provider_ping_with_provider_token_returns_200(client):
     creds = {"email": "provider_ping@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json=creds)
+    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
     login_response = client.post("/api/auth/login", json=creds)
     token = login_response.get_json()["access_token"]
 
@@ -254,7 +254,7 @@ def test_login_rate_limit_returns_429(client):
 
 def test_refresh_returns_new_access_token(client):
     creds = {"email": "refresh_user@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json=creds)
+    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
     login_response = client.post("/api/auth/login", json=creds)
     refresh_token = login_response.get_json()["refresh_token"]
 
@@ -276,7 +276,7 @@ def test_refresh_returns_new_access_token(client):
 
 def test_refresh_rotation_revokes_old_refresh_token(client):
     creds = {"email": "refresh_rotate@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json=creds)
+    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
     login_response = client.post("/api/auth/login", json=creds)
     old_refresh = login_response.get_json()["refresh_token"]
 
@@ -299,7 +299,7 @@ def test_refresh_rotation_revokes_old_refresh_token(client):
 
 def test_logout_revokes_access_token(client):
     creds = {"email": "logout_user@example.com", "password": "Pass1234!"}
-    client.post("/api/auth/register", json=creds)
+    client.post("/api/auth/register", json={"email": creds["email"], "password": creds["password"], "full_name": "Test User"})
     login_response = client.post("/api/auth/login", json=creds)
     access_token = login_response.get_json()["access_token"]
 
