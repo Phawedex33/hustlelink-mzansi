@@ -16,10 +16,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python 3.12
+    - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.13'
 
     - name: Install dependencies
       run: |
@@ -28,15 +28,19 @@ jobs:
 
     - name: Initial Database Setup
       env:
+        FLASK_ENV: development
         JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
+        SQLALCHEMY_DATABASE_URI: "sqlite:///instance/hlm.db"
       run: |
         mkdir -p instance
-        export PYTHONPATH=$PYTHONPATH:.
+        export PYTHONPATH=$(pwd)
         python -m flask --app run.py db upgrade
 
     - name: Run tests with pytest
       env:
+        FLASK_ENV: testing
         JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
+        SQLALCHEMY_DATABASE_URI: "sqlite:///instance/hlm.db"
       run: |
-        export PYTHONPATH=$PYTHONPATH:.
+        export PYTHONPATH=$(pwd)
         python -m pytest
