@@ -42,5 +42,6 @@ jobs:
         JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
         DATABASE_URL: "sqlite:///instance/hlm.db"
       run: |
+        mkdir -p instance
         export PYTHONPATH=$(pwd)
         python -m pytest
