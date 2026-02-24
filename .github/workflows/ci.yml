@@ -30,7 +30,7 @@ jobs:
       env:
         FLASK_ENV: development
         JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
-        SQLALCHEMY_DATABASE_URI: "sqlite:///instance/hlm.db"
+        DATABASE_URL: "sqlite:///instance/hlm.db"
       run: |
         mkdir -p instance
         export PYTHONPATH=$(pwd)
@@ -40,7 +40,7 @@ jobs:
       env:
         FLASK_ENV: testing
         JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
-        SQLALCHEMY_DATABASE_URI: "sqlite:///instance/hlm.db"
+        DATABASE_URL: "sqlite:///instance/hlm.db"
       run: |
         export PYTHONPATH=$(pwd)
         python -m pytest
