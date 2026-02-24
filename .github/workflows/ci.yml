@@ -26,22 +26,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Initial Database Setup
-      env:
-        FLASK_ENV: development
-        JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
-        DATABASE_URL: "sqlite:///${{ github.workspace }}/backend/instance/hlm.db"
-      run: |
-        mkdir -p instance
-        export PYTHONPATH=$(pwd)
-        python -m flask --app run.py db upgrade
-
     - name: Run tests with pytest
       env:
         FLASK_ENV: testing
-        JWT_SECRET_KEY: "ci-secret-key-at-least-thirty-two-chars-long"
-        DATABASE_URL: "sqlite:///${{ github.workspace }}/backend/instance/hlm.db"
+        JWT_SECRET_KEY: "fixed-ci-secret-at-least-32-chars-long"
       run: |
-        mkdir -p instance
         export PYTHONPATH=$(pwd)
         python -m pytest
