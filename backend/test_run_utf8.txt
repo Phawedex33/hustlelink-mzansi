@@ -1,0 +1,296 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.6, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\CASH\Desktop\hustlelink-mzansi\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\CASH\Desktop\hustlelink-mzansi\backend
+configfile: pytest.ini
+collecting ... collected 37 items
+
+tests/test_admin_bootstrap.py::test_create_admin_cli_creates_account ERROR [  2%]
+tests/test_admin_bootstrap.py::test_create_admin_cli_rejects_duplicate_email ERROR [  5%]
+tests/test_admin_bootstrap.py::test_env_bootstrap_creates_admin_without_cli_shell FAILED [  8%]
+tests/test_auth.py::test_register_success ERROR                          [ 10%]
+tests/test_auth.py::test_register_duplicate_email ERROR                  [ 13%]
+tests/test_auth.py::test_register_invalid_email_returns_400 ERROR        [ 16%]
+tests/test_auth.py::test_register_weak_password_returns_400 ERROR        [ 18%]
+tests/test_auth.py::test_login_success_returns_token ERROR               [ 21%]
+tests/test_auth.py::test_login_invalid_password_returns_401 ERROR        [ 24%]
+tests/test_auth.py::test_login_invalid_email_format_returns_400 ERROR    [ 27%]
+tests/test_auth.py::test_auth_version_endpoint_returns_runtime_contract ERROR [ 29%]
+tests/test_auth.py::test_me_without_token_returns_401 ERROR              [ 32%]
+tests/test_auth.py::test_me_with_token_returns_200 ERROR                 [ 35%]
+tests/test_auth.py::test_admin_ping_with_provider_token_returns_403 ERROR [ 37%]
+tests/test_auth.py::test_admin_login_success_returns_token ERROR         [ 40%]
+tests/test_auth.py::test_admin_ping_with_admin_token_returns_200 ERROR   [ 43%]
+tests/test_auth.py::test_provider_ping_with_provider_token_returns_200 ERROR [ 45%]
+tests/test_auth.py::test_provider_ping_with_admin_token_returns_403 ERROR [ 48%]
+tests/test_auth.py::test_login_rate_limit_returns_429 ERROR              [ 51%]
+tests/test_auth.py::test_refresh_returns_new_access_token ERROR          [ 54%]
+tests/test_auth.py::test_refresh_rotation_revokes_old_refresh_token ERROR [ 56%]
+tests/test_auth.py::test_logout_revokes_access_token ERROR               [ 59%]
+tests/test_docs.py::test_docs_route_serves_swagger_ui ERROR              [ 62%]
+tests/test_docs.py::test_openapi_route_serves_spec_file ERROR            [ 64%]
+tests/test_marketplace.py::test_create_service_fail_not_approved ERROR   [ 67%]
+tests/test_marketplace.py::test_create_service_success ERROR             [ 70%]
+tests/test_marketplace.py::test_create_booking_success ERROR             [ 72%]
+tests/test_marketplace.py::test_list_user_bookings ERROR                 [ 75%]
+tests/test_security.py::test_security_headers_present ERROR              [ 78%]
+tests/test_security.py::test_request_id_is_echoed_when_provided ERROR    [ 81%]
+tests/test_security.py::test_request_id_is_generated_when_missing ERROR  [ 83%]
+tests/test_security.py::test_cors_allows_configured_origin ERROR         [ 86%]
+tests/test_security.py::test_cors_blocks_unconfigured_origin ERROR       [ 89%]
+tests/test_security.py::test_production_cors_requires_explicit_origins PASSED [ 91%]
+tests/test_security.py::test_production_requires_secure_session_cookie PASSED [ 94%]
+tests/test_security.py::test_unauthorized_error_payload_is_normalized ERROR [ 97%]
+tests/test_token_cleanup.py::test_cleanup_expired_revoked_tokens_removes_only_expired ERROR [100%]
+
+=================================== ERRORS ====================================
+___________ ERROR at setup of test_create_admin_cli_creates_account ___________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_______ ERROR at setup of test_create_admin_cli_rejects_duplicate_email _______
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+___________________ ERROR at setup of test_register_success ___________________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_______________ ERROR at setup of test_register_duplicate_email _______________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+__________ ERROR at setup of test_register_invalid_email_returns_400 __________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+__________ ERROR at setup of test_register_weak_password_returns_400 __________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_____________ ERROR at setup of test_login_success_returns_token ______________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+__________ ERROR at setup of test_login_invalid_password_returns_401 __________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+________ ERROR at setup of test_login_invalid_email_format_returns_400 ________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+____ ERROR at setup of test_auth_version_endpoint_returns_runtime_contract ____
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_____________ ERROR at setup of test_me_without_token_returns_401 _____________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+______________ ERROR at setup of test_me_with_token_returns_200 _______________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+______ ERROR at setup of test_admin_ping_with_provider_token_returns_403 ______
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+__________ ERROR at setup of test_admin_login_success_returns_token ___________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_______ ERROR at setup of test_admin_ping_with_admin_token_returns_200 ________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+____ ERROR at setup of test_provider_ping_with_provider_token_returns_200 _____
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+______ ERROR at setup of test_provider_ping_with_admin_token_returns_403 ______
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_____________ ERROR at setup of test_login_rate_limit_returns_429 _____________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+___________ ERROR at setup of test_refresh_returns_new_access_token ___________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+______ ERROR at setup of test_refresh_rotation_revokes_old_refresh_token ______
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_____________ ERROR at setup of test_logout_revokes_access_token ______________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_____________ ERROR at setup of test_docs_route_serves_swagger_ui _____________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+____________ ERROR at setup of test_openapi_route_serves_spec_file ____________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+___________ ERROR at setup of test_create_service_fail_not_approved ___________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+________________ ERROR at setup of test_create_service_success ________________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+________________ ERROR at setup of test_create_booking_success ________________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+__________________ ERROR at setup of test_list_user_bookings __________________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_______________ ERROR at setup of test_security_headers_present _______________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+__________ ERROR at setup of test_request_id_is_echoed_when_provided __________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_________ ERROR at setup of test_request_id_is_generated_when_missing _________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+____________ ERROR at setup of test_cors_allows_configured_origin _____________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+___________ ERROR at setup of test_cors_blocks_unconfigured_origin ____________
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_______ ERROR at setup of test_unauthorized_error_payload_is_normalized _______
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+_ ERROR at setup of test_cleanup_expired_revoked_tokens_removes_only_expired __
+tests\conftest.py:16: in app
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+================================== FAILURES ===================================
+_____________ test_env_bootstrap_creates_admin_without_cli_shell ______________
+tests\test_admin_bootstrap.py:68: in test_env_bootstrap_creates_admin_without_cli_shell
+    app = create_app(
+app\__init__.py:335: in create_app
+    from app.routes.auth import auth_bp
+E   ImportError: cannot import name 'auth_bp' from 'app.routes.auth' (C:\Users\CASH\Desktop\hustlelink-mzansi\backend\app\routes\auth.py)
+------------------------------ Captured log call ------------------------------
+WARNING  app:__init__.py:127 admin_bootstrap_skipped reason=missing_users_table
+=========================== short test summary info ===========================
+FAILED tests/test_admin_bootstrap.py::test_env_bootstrap_creates_admin_without_cli_shell
+ERROR tests/test_admin_bootstrap.py::test_create_admin_cli_creates_account - ...
+ERROR tests/test_admin_bootstrap.py::test_create_admin_cli_rejects_duplicate_email
+ERROR tests/test_auth.py::test_register_success - ImportError: cannot import ...
+ERROR tests/test_auth.py::test_register_duplicate_email - ImportError: cannot...
+ERROR tests/test_auth.py::test_register_invalid_email_returns_400 - ImportErr...
+ERROR tests/test_auth.py::test_register_weak_password_returns_400 - ImportErr...
+ERROR tests/test_auth.py::test_login_success_returns_token - ImportError: can...
+ERROR tests/test_auth.py::test_login_invalid_password_returns_401 - ImportErr...
+ERROR tests/test_auth.py::test_login_invalid_email_format_returns_400 - Impor...
+ERROR tests/test_auth.py::test_auth_version_endpoint_returns_runtime_contract
+ERROR tests/test_auth.py::test_me_without_token_returns_401 - ImportError: ca...
+ERROR tests/test_auth.py::test_me_with_token_returns_200 - ImportError: canno...
+ERROR tests/test_auth.py::test_admin_ping_with_provider_token_returns_403 - I...
+ERROR tests/test_auth.py::test_admin_login_success_returns_token - ImportErro...
+ERROR tests/test_auth.py::test_admin_ping_with_admin_token_returns_200 - Impo...
+ERROR tests/test_auth.py::test_provider_ping_with_provider_token_returns_200
+ERROR tests/test_auth.py::test_provider_ping_with_admin_token_returns_403 - I...
+ERROR tests/test_auth.py::test_login_rate_limit_returns_429 - ImportError: ca...
+ERROR tests/test_auth.py::test_refresh_returns_new_access_token - ImportError...
+ERROR tests/test_auth.py::test_refresh_rotation_revokes_old_refresh_token - I...
+ERROR tests/test_auth.py::test_logout_revokes_access_token - ImportError: can...
+ERROR tests/test_docs.py::test_docs_route_serves_swagger_ui - ImportError: ca...
+ERROR tests/test_docs.py::test_openapi_route_serves_spec_file - ImportError: ...
+ERROR tests/test_marketplace.py::test_create_service_fail_not_approved - Impo...
+ERROR tests/test_marketplace.py::test_create_service_success - ImportError: c...
+ERROR tests/test_marketplace.py::test_create_booking_success - ImportError: c...
+ERROR tests/test_marketplace.py::test_list_user_bookings - ImportError: canno...
+ERROR tests/test_security.py::test_security_headers_present - ImportError: ca...
+ERROR tests/test_security.py::test_request_id_is_echoed_when_provided - Impor...
+ERROR tests/test_security.py::test_request_id_is_generated_when_missing - Imp...
+ERROR tests/test_security.py::test_cors_allows_configured_origin - ImportErro...
+ERROR tests/test_security.py::test_cors_blocks_unconfigured_origin - ImportEr...
+ERROR tests/test_security.py::test_unauthorized_error_payload_is_normalized
+ERROR tests/test_token_cleanup.py::test_cleanup_expired_revoked_tokens_removes_only_expired
+=================== 1 failed, 2 passed, 34 errors in 0.75s ====================

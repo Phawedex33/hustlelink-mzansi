@@ -5,7 +5,7 @@ from app.extensions import db
 from .base import TimestampMixin
 
 if TYPE_CHECKING:
-    from .identity import ProviderProfile, User
+    pass
 
 
 class Service(db.Model, TimestampMixin):

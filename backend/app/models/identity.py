@@ -1,4 +1,3 @@
-
 from app.extensions import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -90,10 +89,9 @@ class ProviderProfile(db.Model, TimestampMixin):
     @property
     def can_list_services(self):
         """Business rule: Provider cannot create services until profile is fully completed."""
-        user = User.query.get(self.user_id)
-        if not user or not user.profile:
+        if not self.user or not self.user.profile:
             return False
-        return user.profile.is_complete and self.is_approved
+        return self.user.profile.is_complete and self.is_approved
 
     def __repr__(self):
         return f"<ProviderProfile {self.business_name or self.user_id}>"

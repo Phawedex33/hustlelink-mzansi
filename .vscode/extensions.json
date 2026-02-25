@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "ms-python.debugpy",
+    "esbenp.prettier-vscode",
+    "redhat.vscode-yaml",
+    "humao.rest-client"
+  ],
+  "optionalRecommendations": [
+    "ms-vscode.powershell",
+    "eamodio.gitlens"
+  ]
+}
