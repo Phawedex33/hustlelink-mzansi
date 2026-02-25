@@ -1,14 +1,20 @@
-name: Backend CI
+name: Backend Checks
 
 on:
   push:
+    branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
+    branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
+
+concurrency:
+  group: backend-checks-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-and-migrations:
